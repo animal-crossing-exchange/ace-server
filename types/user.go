@@ -9,6 +9,7 @@ import (
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/bson/primitive"
     "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
     "github.com/graphql-go/graphql"
 )
 
@@ -105,6 +106,45 @@ func AddUser(ctx context.Context, usersCollection mongo.Collection) graphql.Fiel
                 return nil, err
             }
             return user, nil
+        },
+    }
+}
+
+func SetUserAdmin(ctx context.Context, usersCollection mongo.Collection) graphql.Field {
+    return graphql.Field {
+        Type: UserType,
+        Description: "Update a user's admin status",
+        Args: graphql.FieldConfigArgument {
+            "id": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+            "isAdmin": &graphql.ArgumentConfig {
+                Type: graphql.Boolean,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            id, prs := p.Args["id"]
+            if !prs {
+                return nil, errors.New("No user ID given for admin update")
+            }
+            isAdmin, prs := p.Args["isAdmin"]
+            if !prs {
+                return nil, errors.New("No user ID given for admin update")
+            }
+            objID, err := primitive.ObjectIDFromHex(id.(string))
+            if err != nil {
+                return nil, err
+            }
+            filter := bson.D{{"_id", objID}}
+            update := bson.D{{"$set", bson.D{{"admin", isAdmin}}}}
+            opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+            timeout, _ := context.WithTimeout(ctx, time.Second * 3)
+            var updatedUser bson.M
+            err = usersCollection.FindOneAndUpdate(timeout, filter, update, opts).Decode(&updatedUser)
+            if err != nil {
+                return nil, err
+            }
+            return updatedUser, nil
         },
     }
 }

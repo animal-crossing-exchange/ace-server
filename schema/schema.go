@@ -3,7 +3,7 @@
 package schema
 
 import (
-    "api-test/types"
+    "github.com/animal-crossing-exchange/ace-server/types"
 
     "context"
 
@@ -34,9 +34,11 @@ func GenerateQuerySchema(ctx context.Context, db mongo.Database) graphql.Fields 
 // should be called after GenerateQuerySchema.
 func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fields {
     AddUser := types.AddUser(ctx, *db.Collection("users"))
+    SetUserAdmin := types.SetUserAdmin(ctx, *db.Collection("users"))
 
     return graphql.Fields {
         "addUser": &AddUser,
+        "setUserAdmin": &SetUserAdmin,
     }
 }
 
