@@ -32,6 +32,7 @@ var UserType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "discordID": &graphql.Field {
                 Type: graphql.Int,

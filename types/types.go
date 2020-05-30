@@ -18,6 +18,13 @@ import (
 // Some types have structs, but none of them are being used. I have left them in case we need
 // them down the road.
 
+// idResolver translates the MongoDB document's _id field to the id field of the GraphQL types.
+func idResolver(p graphql.ResolveParams) (interface{}, error) {
+    sourceObj := p.Source.(primitive.M)
+    id := sourceObj["_id"].(primitive.ObjectID).String()[10:34]
+    return id, nil
+}
+
 // resolverGenerator provides a common implementation of a Resolve function on a GraphQL
 // object. In the database, documents will store the ObjectID of the sub-document they reference
 // under a key, but the GraphQL operation must return the document itself. This is performed

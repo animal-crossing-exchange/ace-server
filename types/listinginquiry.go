@@ -24,6 +24,7 @@ var ListingInquiryType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "note": &graphql.Field {
                 Type: graphql.String,

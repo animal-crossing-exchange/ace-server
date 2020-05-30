@@ -30,6 +30,7 @@ var ItemType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "name": &graphql.Field {
                 Type: graphql.String,

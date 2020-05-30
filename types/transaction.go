@@ -29,6 +29,7 @@ var TransactionType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "state": &graphql.Field {
                 Type: graphql.String, // TODO TransactionState scalar

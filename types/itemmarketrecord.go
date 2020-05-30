@@ -24,6 +24,7 @@ var ItemMarketRecordType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "date": &graphql.Field {
                 Type: graphql.String, // TODO Date scalar

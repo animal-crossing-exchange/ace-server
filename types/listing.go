@@ -25,6 +25,7 @@ var ListingType = graphql.NewObject(
         Fields: graphql.Fields {
             "id": &graphql.Field {
                 Type: graphql.ID,
+                Resolve: idResolver,
             },
             "price": &graphql.Field {
                 Type: graphql.Int,
