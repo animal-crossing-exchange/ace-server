@@ -1,7 +1,7 @@
 package main
 
 import (
-    "api-test/schema"
+    "github.com/animal-crossing-exchange/ace-server/schema"
 
     "context"
     "encoding/json"
