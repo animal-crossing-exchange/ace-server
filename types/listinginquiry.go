@@ -26,6 +26,10 @@ var ListingInquiryType = graphql.NewObject(
                 Type: graphql.ID,
                 Resolve: idResolver,
             },
+            "created": &graphql.Field {
+                Type: graphql.String,
+                Resolve: timestampResolver,
+            },
             "note": &graphql.Field {
                 Type: graphql.String,
             },

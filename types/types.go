@@ -25,6 +25,13 @@ func idResolver(p graphql.ResolveParams) (interface{}, error) {
     return id, nil
 }
 
+// timestampResolver gets the creation time of the document from its _id.
+func timestampResolver(p graphql.ResolveParams) (interface{}, error) {
+    sourceObj := p.Source.(primitive.M)
+    id := sourceObj["_id"].(primitive.ObjectID)
+    return id.Timestamp(), nil
+}
+
 // resolverGenerator provides a common implementation of a Resolve function on a GraphQL
 // object. In the database, documents will store the ObjectID of the sub-document they reference
 // under a key, but the GraphQL operation must return the document itself. This is performed

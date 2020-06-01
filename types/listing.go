@@ -27,6 +27,10 @@ var ListingType = graphql.NewObject(
                 Type: graphql.ID,
                 Resolve: idResolver,
             },
+            "created": &graphql.Field {
+                Type: graphql.String,
+                Resolve: timestampResolver,
+            },
             "price": &graphql.Field {
                 Type: graphql.Int,
             },

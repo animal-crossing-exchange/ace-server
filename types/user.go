@@ -37,6 +37,10 @@ var UserType = graphql.NewObject(
             "discordID": &graphql.Field {
                 Type: graphql.Int,
             },
+            "created": &graphql.Field {
+                Type: graphql.String,
+                Resolve: timestampResolver,
+            },
             "lastLogin": &graphql.Field {
                 Type: graphql.String, // TODO Date scalar
             },

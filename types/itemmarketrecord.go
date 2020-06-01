@@ -28,6 +28,7 @@ var ItemMarketRecordType = graphql.NewObject(
             },
             "date": &graphql.Field {
                 Type: graphql.String, // TODO Date scalar
+                Resolve: timestampResolver,
             },
             "avg": &graphql.Field {
                 Type: graphql.Int,
