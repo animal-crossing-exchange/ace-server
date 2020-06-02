@@ -155,3 +155,36 @@ func SetUserAdmin(ctx context.Context, usersCollection mongo.Collection) graphql
     }
 }
 
+// DeleteUser deletes a user from the database.
+func DeleteUser(ctx context.Context, usersCollection mongo.Collection) graphql.Field {
+    return graphql.Field {
+        Type: UserType,
+        Description: "Delete a user",
+        Args: graphql.FieldConfigArgument {
+            "id": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            id, prs := p.Args["id"]
+            if !prs {
+                return nil, errors.New("No user ID given for user deletion")
+            }
+            objID, err := primitive.ObjectIDFromHex(id.(string))
+            if err != nil {
+                return nil, err
+            }
+            filter := bson.D{{"_id", objID}}
+            opts := options.FindOneAndDelete()
+            timeout, cancel := context.WithTimeout(ctx, time.Second * 3)
+            defer cancel()
+            var deletedUser bson.M
+            err = usersCollection.FindOneAndDelete(timeout, filter, opts).Decode(&deletedUser)
+            if err != nil {
+                return nil, err
+            }
+            return deletedUser, nil
+        },
+    }
+}
+
