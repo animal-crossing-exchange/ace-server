@@ -20,6 +20,7 @@ func GenerateQuerySchema(ctx context.Context, db mongo.Database) graphql.Fields 
     types.InitListingInquiry(ctx, db)
     types.InitTransactionType(ctx, db)
     types.InitUserType(ctx, db)
+    types.InitUserReportType(ctx, db)
 
     GetItem := types.GetItem(ctx, *db.Collection("items"))
     GetItems := types.Items(ctx, *db.Collection("items"))
@@ -39,12 +40,16 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
     SetUserAdmin := types.SetUserAdmin(ctx, *db.Collection("users"))
     UnbanUser := types.UnbanUser(ctx, *db.Collection("users"))
 
+    ReportUser := types.ReportUser(ctx, *db.Collection("reports"))
+
     return graphql.Fields {
         "addUser": &AddUser,
         "banUser": &BanUser,
         "deleteUser": &DeleteUser,
         "setUserAdmin": &SetUserAdmin,
         "unbanUser": &UnbanUser,
+
+        "reportUser": &ReportUser,
     }
 }
 

@@ -83,7 +83,10 @@ func AddUser(ctx context.Context, usersCollection mongo.Collection) graphql.Fiel
             },
         },
         Resolve: func (p graphql.ResolveParams) (interface{}, error) {
-            discordID := p.Args["discordID"]
+            discordID, prs := p.Args["discordID"]
+            if !prs {
+                return nil, errors.New("Discord ID not given for user creation")
+            }
             var user bson.M
             timeout, cancel := context.WithTimeout(ctx, time.Second)
             defer cancel()

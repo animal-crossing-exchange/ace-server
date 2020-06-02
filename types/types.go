@@ -58,12 +58,11 @@ func resolverGenerator(ctx context.Context, objKey string, collection mongo.Coll
                 cancel()
             }
             return targetObjArray, nil
-        case primitive.M: // or a singular ObjectID
-            id := targetObj[objKey]
+        case primitive.ObjectID: // or a singular ObjectID
             var obj bson.M
             timeout, cancel := context.WithTimeout(ctx, time.Second * 1)
             defer cancel()
-            err := collection.FindOne(timeout, bson.M{"_id": id}).Decode(&obj)
+            err := collection.FindOne(timeout, bson.M{"_id": targetObj}).Decode(&obj)
             if err != nil {
                 return nil, err
             }
