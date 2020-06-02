@@ -81,7 +81,8 @@ func GetItem(ctx context.Context, itemsCollection mongo.Collection) graphql.Fiel
         },
         Resolve: func(p graphql.ResolveParams) (interface{}, error) {
             var result bson.M
-            timeout, _ := context.WithTimeout(ctx, time.Second * 3)
+            timeout, cancel := context.WithTimeout(ctx, time.Second * 3)
+            defer cancel()
             var err error
             if id, prs := p.Args["id"]; prs {
                 objID, err := primitive.ObjectIDFromHex(id.(string))
@@ -109,7 +110,8 @@ func Items(ctx context.Context, itemsCollection mongo.Collection) graphql.Field 
         Type: graphql.NewList(ItemType),
         Description: "Get all Items",
         Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-            timeout, _ := context.WithTimeout(ctx, time.Second * 3)
+            timeout, cancel := context.WithTimeout(ctx, time.Second * 3)
+            defer cancel()
             cursor, err := itemsCollection.Find(timeout, bson.D{})
             if err != nil {
                 return nil, err

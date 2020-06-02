@@ -48,18 +48,21 @@ func resolverGenerator(ctx context.Context, objKey string, collection mongo.Coll
             // but this didn't seem to work
             for i, id := range targetObj {
                 var obj bson.M
-                timeout, _ := context.WithTimeout(ctx, time.Second * 1)
+                timeout, cancel := context.WithTimeout(ctx, time.Second * 1)
                 err := collection.FindOne(timeout, bson.M{"_id": id}).Decode(&obj)
                 if err != nil {
+                    cancel()
                     return nil, err
                 }
                 targetObjArray[i] = obj
+                cancel()
             }
             return targetObjArray, nil
         case primitive.M: // or a singular ObjectID
             id := targetObj[objKey]
             var obj bson.M
-            timeout, _ := context.WithTimeout(ctx, time.Second * 1)
+            timeout, cancel := context.WithTimeout(ctx, time.Second * 1)
+            defer cancel()
             err := collection.FindOne(timeout, bson.M{"_id": id}).Decode(&obj)
             if err != nil {
                 return nil, err

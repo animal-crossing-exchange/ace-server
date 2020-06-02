@@ -85,7 +85,8 @@ func AddUser(ctx context.Context, usersCollection mongo.Collection) graphql.Fiel
         Resolve: func (p graphql.ResolveParams) (interface{}, error) {
             discordID := p.Args["discordID"]
             var user bson.M
-            timeout, _ := context.WithTimeout(ctx, time.Second)
+            timeout, cancel := context.WithTimeout(ctx, time.Second)
+            defer cancel()
             err := usersCollection.FindOne(timeout, bson.M{"discordID": discordID}).Decode(&user)
             if err != nil && err.Error() != "mongo: no documents in result" {
                 return nil, err
@@ -144,7 +145,8 @@ func SetUserAdmin(ctx context.Context, usersCollection mongo.Collection) graphql
             filter := bson.D{{"_id", objID}}
             update := bson.D{{"$set", bson.D{{"admin", isAdmin}}}}
             opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-            timeout, _ := context.WithTimeout(ctx, time.Second * 3)
+            timeout, cancel := context.WithTimeout(ctx, time.Second * 3)
+            defer cancel()
             var updatedUser bson.M
             err = usersCollection.FindOneAndUpdate(timeout, filter, update, opts).Decode(&updatedUser)
             if err != nil {
