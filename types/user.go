@@ -190,3 +190,44 @@ func DeleteUser(ctx context.Context, usersCollection mongo.Collection) graphql.F
     }
 }
 
+// BanUser sets the ban date on a user's record in the database. A note can optionally
+// be provided. If the user is already banned, the ban date and note will simply be updated.
+func BanUser(ctx context.Context, usersCollection mongo.Collection) graphql.Field {
+    return graphql.Field {
+        Type: UserType,
+        Description: "Ban a user",
+        Args: graphql.FieldConfigArgument {
+            "id": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+            "note": &graphql.ArgumentConfig {
+                Type: graphql.String,
+                DefaultValue: nil,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            id, prs := p.Args["id"]
+            if !prs {
+                return nil, errors.New("No user ID given for user ban")
+            }
+            objID, err := primitive.ObjectIDFromHex(id.(string))
+            if err != nil {
+                return nil, err
+            }
+            note := p.Args["note"]
+            date := time.Now().String()
+            filter := bson.M{"_id": objID}
+            update := bson.D{{"$set", bson.M{"banned": date, "banNote": note}}}
+            opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+            timeout, cancel := context.WithTimeout(ctx, time.Second)
+            defer cancel()
+            var bannedUser bson.M
+            err = usersCollection.FindOneAndUpdate(timeout, filter, update, opts).Decode(&bannedUser)
+            if err != nil {
+                return nil, err
+            }
+            return bannedUser, nil
+        },
+    }
+}
+
