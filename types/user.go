@@ -231,3 +231,37 @@ func BanUser(ctx context.Context, usersCollection mongo.Collection) graphql.Fiel
     }
 }
 
+// UnbanUser clears the banned and banNote fields on a user in the database.
+func UnbanUser(ctx context.Context, usersCollection mongo.Collection) graphql.Field {
+    return graphql.Field {
+        Type: UserType,
+        Description: "Ban a user",
+        Args: graphql.FieldConfigArgument {
+            "id": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            id, prs := p.Args["id"]
+            if !prs {
+                return nil, errors.New("No user ID given for user ban")
+            }
+            objID, err := primitive.ObjectIDFromHex(id.(string))
+            if err != nil {
+                return nil, err
+            }
+            filter := bson.M{"_id": objID}
+            update := bson.D{{"$set", bson.M{"banned": nil, "banNote": nil}}}
+            opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+            timeout, cancel := context.WithTimeout(ctx, time.Second)
+            defer cancel()
+            var bannedUser bson.M
+            err = usersCollection.FindOneAndUpdate(timeout, filter, update, opts).Decode(&bannedUser)
+            if err != nil {
+                return nil, err
+            }
+            return bannedUser, nil
+        },
+    }
+}
+

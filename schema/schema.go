@@ -37,12 +37,14 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
     BanUser := types.BanUser(ctx, *db.Collection("users"))
     DeleteUser := types.DeleteUser(ctx, *db.Collection("users"))
     SetUserAdmin := types.SetUserAdmin(ctx, *db.Collection("users"))
+    UnbanUser := types.UnbanUser(ctx, *db.Collection("users"))
 
     return graphql.Fields {
         "addUser": &AddUser,
         "banUser": &BanUser,
         "deleteUser": &DeleteUser,
         "setUserAdmin": &SetUserAdmin,
+        "unbanUser": &UnbanUser,
     }
 }
 
