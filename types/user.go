@@ -61,6 +61,10 @@ var UserType = graphql.NewObject(
 )
 
 func InitUserType(ctx context.Context, db mongo.Database) {
+    UserType.AddFieldConfig("listings", &graphql.Field {
+        Type: graphql.NewList(ListingType),
+        Resolve: resolverGenerator(ctx, "listings", *db.Collection("listings")),
+    })
     UserType.AddFieldConfig("inquiries", &graphql.Field {
         Type: graphql.NewList(ListingInquiryType),
         Resolve: resolverGenerator(ctx, "inquiries", *db.Collection("inquiries")),

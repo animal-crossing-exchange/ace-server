@@ -18,6 +18,28 @@ import (
 // Some types have structs, but none of them are being used. I have left them in case we need
 // them down the road.
 
+func addToBsonArray(ctx context.Context, id primitive.ObjectID, coll mongo.Collection, key string, val interface{}) error {
+    filter := bson.M{"_id": id}
+    update := bson.D{{"$addToSet", bson.M{key: val}}}
+    res := coll.FindOneAndUpdate(ctx, filter, update, nil)
+    if err := res.Err(); err != nil {
+        return err
+    }
+    return nil
+}
+
+func pullFromBsonArray(ctx context.Context, id primitive.ObjectID, coll mongo.Collection, key string, val interface{}) error {
+    filter := bson.M{"_id": id}
+    update := bson.D{{"$pullAll", bson.M{key: bson.A{val}}}}
+    res := coll.FindOneAndUpdate(ctx, filter, update, nil)
+    if err := res.Err(); err != nil {
+        fmt.Println("OOF")
+        fmt.Println(err)
+        return err
+    }
+    return nil
+}
+
 // idResolver translates the MongoDB document's _id field to the id field of the GraphQL types.
 func idResolver(p graphql.ResolveParams) (interface{}, error) {
     sourceObj := p.Source.(primitive.M)
