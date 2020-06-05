@@ -43,6 +43,7 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
     ReportUser := types.ReportUser(ctx, *db.Collection("reports"))
 
     CreateListing := types.CreateListing(ctx, db)
+    DeleteListing := types.DeleteListing(ctx, db)
 
     return graphql.Fields {
         "addUser": &AddUser,
@@ -54,6 +55,7 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
         "reportUser": &ReportUser,
 
         "createListing": &CreateListing,
+        "deleteListing": &DeleteListing,
     }
 }
 

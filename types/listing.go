@@ -3,6 +3,7 @@ package types
 import (
     "context"
     "errors"
+    "log"
     "time"
 
     "go.mongodb.org/mongo-driver/bson"
@@ -37,9 +38,6 @@ var ListingType = graphql.NewObject(
             },
             "price": &graphql.Field {
                 Type: graphql.Int,
-            },
-            "deleted": &graphql.Field {
-                Type: graphql.Boolean,
             },
             "accepted": &graphql.Field {
                 Type: graphql.String, //TODO change this to a custom Date scalar
@@ -157,6 +155,57 @@ func CreateListing(ctx context.Context, db mongo.Database) graphql.Field {
                 listingsCollection.DeleteOne(timeout, bson.M{"_id": res.InsertedID})
                 pullFromBsonArray(ctx, itemObjID, *itemsCollection, "listings", res.InsertedID)
                 return nil, err
+            }
+
+            return listing, nil
+        },
+    }
+}
+
+// DeleteListing deletes a listing from the database, and updates the associated
+// item and user.
+func DeleteListing(ctx context.Context, db mongo.Database) graphql.Field {
+    itemsCollection := db.Collection("items")
+    listingsCollection := db.Collection("listings")
+    usersCollection := db.Collection("users")
+
+    return graphql.Field {
+        Type: ListingType,
+        Description: "Delete a listing",
+        Args: graphql.FieldConfigArgument {
+            "listingID": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            listingID, prs := p.Args["listingID"]
+            if !prs {
+                return nil, errors.New("Listing ID not given for listing deletion")
+            }
+            listingObjID, err := primitive.ObjectIDFromHex(listingID.(string))
+            if err != nil {
+                return nil, err
+            }
+
+            timeout, cancel := context.WithTimeout(ctx, time.Second)
+            defer cancel()
+
+            var listing bson.M
+            err = listingsCollection.FindOneAndDelete(timeout, bson.M{"_id": listingObjID}, nil).Decode(&listing)
+            if err != nil {
+                return nil, err
+            }
+
+            itemObjID := listing["item"].(primitive.ObjectID)
+            err = pullFromBsonArray(timeout, itemObjID, *itemsCollection, "listings", listingObjID)
+            if err != nil {
+                log.Println(err)
+            }
+
+            userObjID := listing["seller"].(primitive.ObjectID)
+            err = pullFromBsonArray(timeout, userObjID, *usersCollection, "listings", listingObjID)
+            if err != nil {
+                log.Println(err)
             }
 
             return listing, nil

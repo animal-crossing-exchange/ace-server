@@ -13,11 +13,10 @@ import (
     "github.com/graphql-go/graphql"
 )
 
-// TODO: add resolvers for IDs and created timestamps
-
 // Some types have structs, but none of them are being used. I have left them in case we need
 // them down the road.
 
+// addToBsonArray adds an element to a BSON array in a document specified by an ObjectID.
 func addToBsonArray(ctx context.Context, id primitive.ObjectID, coll mongo.Collection, key string, val interface{}) error {
     filter := bson.M{"_id": id}
     update := bson.D{{"$addToSet", bson.M{key: val}}}
@@ -28,13 +27,12 @@ func addToBsonArray(ctx context.Context, id primitive.ObjectID, coll mongo.Colle
     return nil
 }
 
+// pullFromBsonArray removes an element from a BSON array in a document specified by an ObjectID.
 func pullFromBsonArray(ctx context.Context, id primitive.ObjectID, coll mongo.Collection, key string, val interface{}) error {
     filter := bson.M{"_id": id}
     update := bson.D{{"$pullAll", bson.M{key: bson.A{val}}}}
     res := coll.FindOneAndUpdate(ctx, filter, update, nil)
     if err := res.Err(); err != nil {
-        fmt.Println("OOF")
-        fmt.Println(err)
         return err
     }
     return nil
