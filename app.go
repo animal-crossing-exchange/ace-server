@@ -24,7 +24,8 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    pingTimeout, _ := context.WithTimeout(ctx, time.Second)
+    pingTimeout, cancel := context.WithTimeout(ctx, time.Second)
+    defer cancel()
     err = client.Ping(pingTimeout, nil)
     if err != nil {
         log.Fatal(err)

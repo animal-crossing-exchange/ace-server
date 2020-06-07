@@ -42,6 +42,8 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
 
     ReportUser := types.ReportUser(ctx, *db.Collection("reports"))
 
+    CreateInquiry := types.CreateInquiry(ctx, db)
+
     CreateListing := types.CreateListing(ctx, db)
     DeleteListing := types.DeleteListing(ctx, db)
 
@@ -53,6 +55,8 @@ func GenerateMutationSchema(ctx context.Context, db mongo.Database) graphql.Fiel
         "unbanUser": &UnbanUser,
 
         "reportUser": &ReportUser,
+
+        "createInquiry": &CreateInquiry,
 
         "createListing": &CreateListing,
         "deleteListing": &DeleteListing,
