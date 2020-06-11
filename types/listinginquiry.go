@@ -61,6 +61,8 @@ func InitListingInquiry(ctx context.Context, db mongo.Database) {
     })
 }
 
+// CreateInquiry creates an inquiry within the database, updating the relevant
+// user and listing.
 func CreateInquiry(ctx context.Context, db mongo.Database) graphql.Field {
     inquiriesCollection := db.Collection("inquiries")
     listingsCollection := db.Collection("listings")
@@ -161,6 +163,53 @@ func CreateInquiry(ctx context.Context, db mongo.Database) graphql.Field {
             }
 
             return inquiry, nil
+        },
+    }
+}
+
+// deleteInquiry is a helper function used by mutations to delete inquiries from the database,
+// updating the relevant user and listing.
+func deleteInquiry(ctx context.Context, id primitive.ObjectID, db mongo.Database) (bson.M, error) {
+    var inquiry bson.M
+    err := db.Collection("inquiries").FindOneAndDelete(ctx, bson.M{"_id": id}, nil).Decode(&inquiry)
+    if err != nil {
+        return nil, err
+    }
+
+    listingObjID := inquiry["listing"].(primitive.ObjectID)
+    err = pullFromBsonArray(ctx, listingObjID, *(db.Collection("listings")), "inquiries", id)
+
+    userObjID := inquiry["buyer"].(primitive.ObjectID)
+    pullFromBsonArray(ctx, userObjID, *(db.Collection("users")), "inquiries", id)
+
+    return inquiry, nil
+}
+
+// DeleteInquiry deletes an inquiry from the database, updating the relevant user
+// and listing.
+func DeleteInquiry(ctx context.Context, db mongo.Database) graphql.Field {
+    return graphql.Field {
+        Type: ListingInquiryType,
+        Description: "Delete a listing inquiry",
+        Args: graphql.FieldConfigArgument {
+            "inquiryID": &graphql.ArgumentConfig {
+                Type: graphql.ID,
+            },
+        },
+        Resolve: func (p graphql.ResolveParams) (interface{}, error) {
+            inquiryID, prs := p.Args["inquiryID"]
+            if !prs {
+                return nil, errors.New("No inquiry ID given for deletion")
+            }
+            inquiryObjID, err := primitive.ObjectIDFromHex(inquiryID.(string))
+            if err != nil {
+                return nil, err
+            }
+
+            timeout, cancel := context.WithTimeout(ctx, time.Second)
+            defer cancel()
+
+            return deleteInquiry(timeout, inquiryObjID, db)
         },
     }
 }
